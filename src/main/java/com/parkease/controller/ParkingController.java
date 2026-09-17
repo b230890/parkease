@@ -4,6 +4,9 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Pageable;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,6 +20,7 @@ import com.parkease.dto.CheckInRequest;
 import com.parkease.dto.CheckInResponse;
 import com.parkease.dto.CheckOutResponse;
 import com.parkease.dto.ParkingSessionResponse;
+import com.parkease.dto.ParkingHistoryResponse;
 import com.parkease.dto.PlateTransferRequest;
 import com.parkease.dto.PlateTransferResponse;
 import com.parkease.service.ParkingService;
@@ -57,5 +61,12 @@ public class ParkingController {
     @GetMapping("/active")
     public List<ParkingSessionResponse> active() {
         return parkingService.findActiveSessions();
+    }
+
+    @GetMapping("/history")
+    public ParkingHistoryResponse history(
+            @PageableDefault(size = 10, sort = "checkInTime", direction = Direction.DESC)
+            Pageable pageable) {
+        return parkingService.findHistory(pageable);
     }
 }

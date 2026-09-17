@@ -4,15 +4,19 @@ import java.time.LocalDateTime;
 import java.time.Duration;
 import java.time.Clock;
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import com.parkease.dto.CheckInRequest;
 import com.parkease.dto.CheckInResponse;
 import com.parkease.dto.CheckOutResponse;
 import com.parkease.dto.ClockResponse;
 import com.parkease.dto.ParkingSessionResponse;
+import com.parkease.dto.ParkingHistoryResponse;
 import com.parkease.dto.PlateTransferRequest;
 import com.parkease.dto.PlateTransferResponse;
 import com.parkease.entity.RateCard;
@@ -29,6 +33,10 @@ import com.parkease.repository.ParkingSpotRepository;
 
 @Service
 public class ParkingService {
+
+    private static final int MAX_HISTORY_PAGE_SIZE = 100;
+    private static final Set<String> HISTORY_SORT_FIELDS = Set.of(
+            "checkInTime", "checkOutTime", "fee", "plateNumber");
 
     private final ParkingSessionRepository parkingSessionRepository;
     private final ParkingSpotRepository parkingSpotRepository;
@@ -232,6 +240,34 @@ public class ParkingService {
                 .stream()
                 .map(this::toParkingSessionResponse)
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public ParkingHistoryResponse findHistory(Pageable pageable) {
+        validateHistoryPageable(pageable);
+        Page<ParkingSession> history = parkingSessionRepository.findByStatus(
+                SessionStatus.COMPLETED, pageable);
+        return new ParkingHistoryResponse(
+                history.map(this::toParkingSessionResponse).getContent(),
+                history.getNumber(),
+                history.getSize(),
+                history.getTotalElements(),
+                history.getTotalPages());
+    }
+
+    private void validateHistoryPageable(Pageable pageable) {
+        if (pageable == null || pageable.getPageNumber() < 0) {
+            throw new BadRequestException("Page number must not be negative");
+        }
+        if (pageable.getPageSize() < 1 || pageable.getPageSize() > MAX_HISTORY_PAGE_SIZE) {
+            throw new BadRequestException("Page size must be between 1 and "
+                    + MAX_HISTORY_PAGE_SIZE);
+        }
+        if (pageable.getSort().isUnsorted()
+                || pageable.getSort().stream()
+                        .anyMatch(order -> !HISTORY_SORT_FIELDS.contains(order.getProperty()))) {
+            throw new BadRequestException("History sort must use checkInTime, checkOutTime, fee, or plateNumber");
+        }
     }
 
     private ParkingSessionResponse toParkingSessionResponse(ParkingSession parkingSession) {
