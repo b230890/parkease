@@ -13,6 +13,8 @@ import com.parkease.dto.CheckInResponse;
 import com.parkease.dto.CheckOutResponse;
 import com.parkease.dto.ClockResponse;
 import com.parkease.dto.ParkingSessionResponse;
+import com.parkease.dto.PlateTransferRequest;
+import com.parkease.dto.PlateTransferResponse;
 import com.parkease.entity.RateCard;
 import com.parkease.entity.ParkingSession;
 import com.parkease.entity.ParkingSpot;
@@ -83,6 +85,58 @@ public class ParkingService {
                 parkingSession.getVehicleType(),
                 parkingSpot.getSpotNumber(),
                 parkingSpot.getFloor(),
+                parkingSession.getCheckInTime(),
+                parkingSession.getStatus());
+    }
+
+    @Transactional
+    public PlateTransferResponse transferPlate(PlateTransferRequest request) {
+        if (request == null || request.getOldPlateNumber() == null
+                || request.getOldPlateNumber().isBlank()
+                || request.getNewPlateNumber() == null
+                || request.getNewPlateNumber().isBlank()) {
+            throw new BadRequestException("Both old and new plate numbers are required");
+        }
+
+        String oldPlateNumber = normalizePlateNumber(request.getOldPlateNumber());
+        String newPlateNumber = normalizePlateNumber(request.getNewPlateNumber());
+        if (oldPlateNumber.equals(newPlateNumber)) {
+            throw new ConflictException("Old and new plate numbers must be different");
+        }
+
+        ParkingSession parkingSession = parkingSessionRepository
+                .findFirstByPlateNumberIgnoreCaseAndStatus(oldPlateNumber, SessionStatus.ACTIVE)
+                .orElseGet(() -> {
+                    boolean hasCompletedSession = parkingSessionRepository
+                            .findByPlateNumberIgnoreCase(oldPlateNumber)
+                            .stream()
+                            .anyMatch(session -> session.getStatus() != SessionStatus.ACTIVE);
+                    if (hasCompletedSession) {
+                        throw new ConflictException("Only active parking sessions can be transferred");
+                    }
+                    throw new NotFoundException("Active parking session not found for plate "
+                            + oldPlateNumber);
+                });
+
+        if (parkingSessionRepository.findFirstByPlateNumberIgnoreCaseAndStatus(
+                newPlateNumber, SessionStatus.ACTIVE).isPresent()) {
+            throw new ConflictException("New plate already has an active parking session");
+        }
+
+        String originalPlateNumber = parkingSession.getPlateNumber();
+        ParkingSpot parkingSpot = parkingSession.getParkingSpot();
+        if (parkingSpot == null) {
+            throw new NotFoundException("Parking spot is missing for session " + parkingSession.getId());
+        }
+
+        parkingSession.setPlateNumber(newPlateNumber);
+        parkingSessionRepository.save(parkingSession);
+
+        return new PlateTransferResponse(
+                parkingSession.getId(),
+                originalPlateNumber,
+                newPlateNumber,
+                parkingSpot.getSpotNumber(),
                 parkingSession.getCheckInTime(),
                 parkingSession.getStatus());
     }
@@ -206,5 +260,9 @@ public class ParkingService {
                 .flatMap(List::stream)
                 .findFirst()
                 .orElseThrow(() -> new ConflictException("No compatible parking spot is available"));
+    }
+
+    private String normalizePlateNumber(String plateNumber) {
+        return plateNumber.trim().toUpperCase();
     }
 }
