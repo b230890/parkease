@@ -11,6 +11,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleNotFound(NotFoundException exception) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", exception.getMessage()));
+    }
+
     @ExceptionHandler({BadRequestException.class, MethodArgumentNotValidException.class})
     public ResponseEntity<Map<String, String>> handleBadRequest(Exception exception) {
         String message = exception instanceof MethodArgumentNotValidException
