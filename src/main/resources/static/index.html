@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ParkEase parking garage operations platform">
+    <title>ParkEase | Parking operations, made clear</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <main id="landing-view" class="view">
+        <header class="site-header shell">
+            <a class="brand" href="#landing" data-route="landing" aria-label="ParkEase home">
+                <span class="brand-mark">P</span>
+                <span>ParkEase</span>
+            </a>
+            <nav class="site-nav" aria-label="Main navigation">
+                <a href="#features">Features</a>
+                <a href="#audience">For attendants</a>
+                <button class="button button-quiet" data-route="login">Log in</button>
+                <button class="button button-dark" data-route="register">Create account</button>
+            </nav>
+        </header>
+
+        <section class="hero shell" id="landing">
+            <div class="hero-copy">
+                <p class="eyebrow">Parking operations, made clear</p>
+                <h1>Move every vehicle through with confidence.</h1>
+                <p class="hero-lede">ParkEase gives attendants one calm workspace for live capacity, quick hand-offs, and accurate parking records.</p>
+                <div class="hero-actions">
+                    <button class="button button-dark button-large" data-route="register">Start managing <span aria-hidden="true">&#8594;</span></button>
+                    <button class="text-button" data-route="login">I already have an account</button>
+                </div>
+            </div>
+            <div class="hero-panel" aria-label="ParkEase dashboard preview">
+                <div class="panel-heading"><span class="live-dot"></span> Garage pulse <span class="panel-time">Live view</span></div>
+                <div class="hero-stat"><strong>72%</strong><span>capacity available</span></div>
+                <div class="capacity-line"><span style="width: 28%"></span></div>
+                <div class="hero-mini-grid">
+                    <div><strong>148</strong><span>total spots</span></div>
+                    <div><strong>41</strong><span>occupied now</span></div>
+                    <div><strong>18</strong><span>EV available</span></div>
+                </div>
+                <div class="hero-ticket"><span class="ticket-dot"></span><span>RJ14AB1234 checked in</span><strong>C-018</strong></div>
+            </div>
+        </section>
+
+        <section class="feature-section shell" id="features">
+            <div class="section-intro"><p class="eyebrow">One view, less guesswork</p><h2>The details attendants need, right when they need them.</h2></div>
+            <div class="feature-grid">
+                <article class="feature-item"><span class="feature-number">01</span><h3>See the garage at a glance</h3><p>Capacity and EV availability stay visible so every check-in starts with a clear answer.</p></article>
+                <article class="feature-item"><span class="feature-number">02</span><h3>Keep hand-offs moving</h3><p>Check in, transfer a plate, and close a session without losing the original parking record.</p></article>
+                <article class="feature-item"><span class="feature-number">03</span><h3>Trust every record</h3><p>Search active vehicles, review history, and keep fee calculations tied to the right session.</p></article>
+            </div>
+        </section>
+
+        <section class="audience-band" id="audience">
+            <div class="shell audience-content"><div><p class="eyebrow">Built for the floor</p><h2>A sharper shift for parking attendants.</h2></div><p>ParkEase reduces radio calls, paper notes, and uncertainty at the gate. The work stays practical: know what is open, place the next car, and keep the line moving.</p></div>
+        </section>
+
+        <section class="future-section shell">
+            <div class="section-intro"><p class="eyebrow">On the horizon</p><h2>More ways to make the garage work smarter.</h2></div>
+            <div class="future-grid">
+                <article><span>01</span><h3>Online reservations</h3><p>Let drivers plan ahead with a place waiting for them.</p></article>
+                <article><span>02</span><h3>Digital payments</h3><p>Give drivers a faster, simpler way to settle their stay.</p></article>
+                <article><span>03</span><h3>Analytics and reports</h3><p>Turn daily parking activity into useful operating insight.</p></article>
+            </div>
+        </section>
+
+        <footer class="site-footer shell"><a class="brand" href="#landing"><span class="brand-mark">P</span><span>ParkEase</span></a><span>Clearer parking, every shift.</span><button class="text-button" data-route="register">Create your account <span aria-hidden="true">&#8594;</span></button></footer>
+    </main>
+
+    <main id="auth-view" class="view auth-view hidden">
+        <div class="auth-shell">
+            <a class="brand auth-brand" href="#landing" data-route="landing"><span class="brand-mark">P</span><span>ParkEase</span></a>
+            <section class="auth-card">
+                <div class="auth-heading"><p class="eyebrow" id="auth-eyebrow">Welcome back</p><h1 id="auth-title">Log in to your garage</h1><p id="auth-copy">Your operations desk is waiting.</p></div>
+                <form id="login-form" class="form-stack">
+                    <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@parkease.com"></label>
+                    <label>Password<input name="password" type="password" autocomplete="current-password" required placeholder="Enter your password"></label>
+                    <button class="button button-dark button-full" type="submit">Log in <span aria-hidden="true">&#8594;</span></button>
+                </form>
+                <form id="register-form" class="form-stack hidden">
+                    <label>Name<input name="name" type="text" autocomplete="name" required placeholder="Your name"></label>
+                    <label>Email<input name="email" type="email" autocomplete="email" required placeholder="you@parkease.com"></label>
+                    <label>Password<input name="password" type="password" autocomplete="new-password" minlength="8" required placeholder="At least 8 characters"></label>
+                    <button class="button button-dark button-full" type="submit">Create account <span aria-hidden="true">&#8594;</span></button>
+                </form>
+                <p id="auth-switch" class="auth-switch">New to ParkEase? <button class="text-button" data-route="register">Create an account</button></p>
+                <p class="auth-back"><button class="text-button" data-route="landing">&#8592; Back to ParkEase</button></p>
+            </section>
+        </div>
+    </main>
+
+    <main id="dashboard-view" class="view dashboard-view hidden">
+        <header class="dashboard-header shell">
+            <a class="brand" href="#dashboard" data-route="dashboard"><span class="brand-mark">P</span><span>ParkEase</span></a>
+            <div class="dashboard-user"><span id="user-name">Attendant</span><button class="button button-quiet" id="logout-button">Log out</button></div>
+        </header>
+        <div class="dashboard-shell shell">
+            <div class="dashboard-intro"><div><p class="eyebrow">Operations desk</p><h1>Good shift, <span id="greeting-name">attendant</span>.</h1><p>Keep the garage moving from one focused workspace.</p></div><button class="button button-dark" id="refresh-button">Refresh data <span aria-hidden="true">&#8635;</span></button></div>
+
+            <section class="metric-grid" aria-label="Garage availability">
+                <article class="metric-card metric-featured"><span>Total spots</span><strong id="total-spots">--</strong><small>Garage capacity</small></article>
+                <article class="metric-card"><span>Available</span><strong id="available-spots">--</strong><small>Ready for check-in</small></article>
+                <article class="metric-card"><span>Occupied</span><strong id="occupied-spots">--</strong><small>Currently parked</small></article>
+                <article class="metric-card metric-ev"><span>EV available</span><strong id="ev-spots">--</strong><small id="ev-status">Checking live capacity</small></article>
+            </section>
+
+            <div id="dashboard-message" class="inline-message hidden"></div>
+
+            <section class="work-grid">
+                <article class="work-card" id="check-in-card"><div class="card-heading"><div><p class="eyebrow">Arrival</p><h2>Check in a vehicle</h2></div><span class="card-icon">+</span></div><form id="check-in-form" class="form-stack compact-form"><label>Plate number<input name="plateNumber" required maxlength="20" placeholder="RJ14AB1234"></label><label>Vehicle type<select name="vehicleType" required><option value="COMPACT">Compact</option><option value="STANDARD">Standard</option><option value="EV">Electric vehicle</option></select></label><button class="button button-dark" type="submit">Assign a spot <span aria-hidden="true">&#8594;</span></button></form><div id="check-in-result" class="result-box hidden"></div></article>
+                <article class="work-card"><div class="card-heading"><div><p class="eyebrow">Handoff</p><h2>Transfer a plate</h2></div><span class="card-icon">&#8644;</span></div><form id="transfer-form" class="form-stack compact-form"><label>Current plate<input name="oldPlateNumber" required maxlength="20" placeholder="RJ14AB1234"></label><label>New plate<input name="newPlateNumber" required maxlength="20" placeholder="RJ14XY5678"></label><button class="button button-outline" type="submit">Transfer session <span aria-hidden="true">&#8594;</span></button></form><div id="transfer-result" class="result-box hidden"></div></article>
+            </section>
+
+            <section class="wide-card"><div class="card-heading"><div><p class="eyebrow">Live floor</p><h2>Active parking sessions</h2></div><span id="active-count" class="count-badge">0 active</span></div><div class="table-wrap"><table><thead><tr><th>Plate</th><th>Vehicle</th><th>Spot</th><th>Checked in</th><th></th></tr></thead><tbody id="active-table"><tr><td colspan="5" class="empty-state">Loading active sessions...</td></tr></tbody></table></div></section>
+
+            <section class="work-grid lower-grid">
+                <article class="work-card"><div class="card-heading"><div><p class="eyebrow">Find a vehicle</p><h2>Search by plate</h2></div><span class="card-icon">⌕</span></div><form id="search-form" class="inline-form"><input name="plateNumber" required placeholder="Enter plate number"><button class="button button-outline" type="submit">Search</button></form><div id="search-result" class="result-list"><p class="muted">Search results will appear here.</p></div></article>
+                <article class="work-card clock-card"><div class="card-heading"><div><p class="eyebrow">Nightly close</p><h2>Run the clock</h2></div><span class="card-icon">◷</span></div><p>Close and bill active sessions that have been parked for more than 24 hours.</p><button class="button button-outline" id="clock-button">Run Nightly Clock <span aria-hidden="true">&#8594;</span></button><div id="clock-result" class="result-box hidden"></div></article>
+            </section>
+
+            <section class="wide-card history-card"><div class="card-heading history-heading"><div><p class="eyebrow">Completed sessions</p><h2>Parking history</h2></div><div class="history-controls"><label>Sort<select id="history-sort"><option value="checkInTime,desc">Newest check-in</option><option value="checkInTime,asc">Oldest check-in</option><option value="checkOutTime,desc">Newest checkout</option><option value="fee,desc">Highest fee</option><option value="plateNumber,asc">Plate A-Z</option></select></label></div></div><div class="table-wrap"><table><thead><tr><th>Plate</th><th>Spot</th><th>Check-in</th><th>Checkout</th><th>Fee</th><th>Status</th></tr></thead><tbody id="history-table"><tr><td colspan="6" class="empty-state">Loading history...</td></tr></tbody></table></div><div class="pagination"><span id="history-meta">Page 1</span><div><button class="button button-quiet" id="history-prev">&#8592; Previous</button><button class="button button-quiet" id="history-next">Next &#8594;</button></div></div></section>
+        </div>
+    </main>
+    <script src="/app.js"></script>
+</body>
+</html>
