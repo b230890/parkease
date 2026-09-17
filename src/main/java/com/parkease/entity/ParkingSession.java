@@ -48,6 +48,15 @@ public class ParkingSession {
     @Column(precision = 10, scale = 2)
     private BigDecimal fee;
 
+    @Column(precision = 10, scale = 2)
+    private BigDecimal appliedFirstHourRate;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal appliedAdditionalHourRate;
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal appliedDailyCap;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -116,6 +125,30 @@ public class ParkingSession {
 
     public void setFee(BigDecimal fee) {
         this.fee = fee;
+    }
+
+    public BigDecimal getAppliedFirstHourRate() {
+        return appliedFirstHourRate;
+    }
+
+    public void setAppliedFirstHourRate(BigDecimal appliedFirstHourRate) {
+        this.appliedFirstHourRate = appliedFirstHourRate;
+    }
+
+    public BigDecimal getAppliedAdditionalHourRate() {
+        return appliedAdditionalHourRate;
+    }
+
+    public void setAppliedAdditionalHourRate(BigDecimal appliedAdditionalHourRate) {
+        this.appliedAdditionalHourRate = appliedAdditionalHourRate;
+    }
+
+    public BigDecimal getAppliedDailyCap() {
+        return appliedDailyCap;
+    }
+
+    public void setAppliedDailyCap(BigDecimal appliedDailyCap) {
+        this.appliedDailyCap = appliedDailyCap;
     }
 
     public SessionStatus getStatus() {

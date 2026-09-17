@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.parkease.dto.CheckInRequest;
 import com.parkease.dto.CheckInResponse;
 import com.parkease.dto.CheckOutResponse;
+import com.parkease.dto.ParkingSessionResponse;
+import com.parkease.entity.RateCard;
 import com.parkease.entity.ParkingSession;
 import com.parkease.entity.ParkingSpot;
 import com.parkease.entity.SessionStatus;
@@ -27,13 +29,16 @@ public class ParkingService {
     private final ParkingSessionRepository parkingSessionRepository;
     private final ParkingSpotRepository parkingSpotRepository;
     private final FeeCalculatorService feeCalculatorService;
+    private final RateCardService rateCardService;
 
     public ParkingService(ParkingSessionRepository parkingSessionRepository,
                           ParkingSpotRepository parkingSpotRepository,
-                          FeeCalculatorService feeCalculatorService) {
+                          FeeCalculatorService feeCalculatorService,
+                          RateCardService rateCardService) {
         this.parkingSessionRepository = parkingSessionRepository;
         this.parkingSpotRepository = parkingSpotRepository;
         this.feeCalculatorService = feeCalculatorService;
+        this.rateCardService = rateCardService;
     }
 
     @Transactional
@@ -79,9 +84,13 @@ public class ParkingService {
             }
 
             LocalDateTime checkOutTime = LocalDateTime.now();
+            RateCard rateCard = rateCardService.getActiveRate(parkingSession.getParkingSpot().getType());
             parkingSession.setCheckOutTime(checkOutTime);
             parkingSession.setFee(feeCalculatorService.calculateFee(
-                parkingSession.getCheckInTime(), checkOutTime));
+                parkingSession.getCheckInTime(), checkOutTime, rateCard));
+            parkingSession.setAppliedFirstHourRate(rateCard.getFirstHourRate());
+            parkingSession.setAppliedAdditionalHourRate(rateCard.getAdditionalHourRate());
+            parkingSession.setAppliedDailyCap(rateCard.getDailyCap());
             parkingSession.setStatus(SessionStatus.COMPLETED);
 
             ParkingSpot parkingSpot = parkingSession.getParkingSpot();
@@ -99,6 +108,41 @@ public class ParkingService {
                 parkingSession.getFee(),
                 parkingSession.getStatus());
             }
+
+    @Transactional(readOnly = true)
+    public List<ParkingSessionResponse> searchByPlateNumber(String plateNumber) {
+        if (plateNumber == null || plateNumber.isBlank()) {
+            throw new BadRequestException("Plate number is required");
+        }
+
+        return parkingSessionRepository.findByPlateNumberIgnoreCase(
+                        plateNumber.trim().toUpperCase())
+                .stream()
+                .map(this::toParkingSessionResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<ParkingSessionResponse> findActiveSessions() {
+        return parkingSessionRepository.findByStatus(SessionStatus.ACTIVE)
+                .stream()
+                .map(this::toParkingSessionResponse)
+                .toList();
+    }
+
+    private ParkingSessionResponse toParkingSessionResponse(ParkingSession parkingSession) {
+        ParkingSpot parkingSpot = parkingSession.getParkingSpot();
+        return new ParkingSessionResponse(
+                parkingSession.getId(),
+                parkingSession.getPlateNumber(),
+                parkingSession.getVehicleType(),
+                parkingSpot.getSpotNumber(),
+                parkingSpot.getFloor(),
+                parkingSession.getCheckInTime(),
+                parkingSession.getCheckOutTime(),
+                parkingSession.getFee(),
+                parkingSession.getStatus());
+    }
 
     private ParkingSpot findAvailableSpot(VehicleType vehicleType) {
         List<SpotType> preferredTypes = switch (vehicleType) {

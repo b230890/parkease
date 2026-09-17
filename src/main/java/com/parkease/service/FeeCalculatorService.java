@@ -6,19 +6,20 @@ import java.time.LocalDateTime;
 
 import org.springframework.stereotype.Service;
 
+import com.parkease.entity.RateCard;
 import com.parkease.exception.BadRequestException;
 
 @Service
 public class FeeCalculatorService {
 
     private static final long SECONDS_PER_HOUR = 60 * 60;
-    private static final BigDecimal FIRST_HOUR_FEE = BigDecimal.valueOf(50);
-    private static final BigDecimal ADDITIONAL_HOUR_FEE = BigDecimal.valueOf(30);
-    private static final BigDecimal MAXIMUM_DAILY_FEE = BigDecimal.valueOf(200);
-
-    public BigDecimal calculateFee(LocalDateTime checkInTime, LocalDateTime checkOutTime) {
+    public BigDecimal calculateFee(LocalDateTime checkInTime, LocalDateTime checkOutTime,
+                                   RateCard rateCard) {
         if (checkInTime == null || checkOutTime == null || checkOutTime.isBefore(checkInTime)) {
             throw new BadRequestException("Checkout time must not be before check-in time");
+        }
+        if (rateCard == null) {
+            throw new BadRequestException("An applicable rate is required");
         }
 
         Duration duration = Duration.between(checkInTime, checkOutTime);
@@ -29,11 +30,11 @@ public class FeeCalculatorService {
         }
 
         if (chargedHours <= 1) {
-            return FIRST_HOUR_FEE;
+            return rateCard.getFirstHourRate();
         }
 
-        BigDecimal fee = FIRST_HOUR_FEE.add(
-                ADDITIONAL_HOUR_FEE.multiply(BigDecimal.valueOf(chargedHours - 1)));
-        return fee.min(MAXIMUM_DAILY_FEE);
+        BigDecimal fee = rateCard.getFirstHourRate().add(
+                rateCard.getAdditionalHourRate().multiply(BigDecimal.valueOf(chargedHours - 1)));
+        return fee.min(rateCard.getDailyCap());
     }
 }

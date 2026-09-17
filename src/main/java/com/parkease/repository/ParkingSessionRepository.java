@@ -13,5 +13,7 @@ public interface ParkingSessionRepository extends JpaRepository<ParkingSession, 
     Optional<ParkingSession> findFirstByPlateNumberIgnoreCaseAndStatus(
             String plateNumber, SessionStatus status);
 
+    List<ParkingSession> findByPlateNumberIgnoreCase(String plateNumber);
+
     List<ParkingSession> findByStatus(SessionStatus status);
 }

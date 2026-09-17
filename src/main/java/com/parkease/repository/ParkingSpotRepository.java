@@ -10,4 +10,10 @@ import com.parkease.entity.SpotType;
 public interface ParkingSpotRepository extends JpaRepository<ParkingSpot, Long> {
 
     List<ParkingSpot> findByOccupiedFalseAndType(SpotType type);
+
+    long countByOccupiedTrue();
+
+    long countByType(SpotType type);
+
+    long countByTypeAndOccupiedTrue(SpotType type);
 }

@@ -33,7 +33,7 @@ public class SecurityConfig {
                         unauthorizedEntryPoint()))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
-                        .requestMatchers("/api/parking/**", "/api/spots/**").authenticated()
+                        .requestMatchers("/api/parking/**", "/api/spots/**", "/api/rates/**").authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
