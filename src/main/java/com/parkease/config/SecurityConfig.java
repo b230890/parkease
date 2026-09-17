@@ -1,6 +1,7 @@
 package com.parkease.config;
 
 import java.io.IOException;
+import java.time.Clock;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +17,11 @@ import com.parkease.security.JwtAuthenticationFilter;
 
 @Configuration
 public class SecurityConfig {
+
+    @Bean
+    Clock applicationClock() {
+        return Clock.systemDefaultZone();
+    }
 
     @Bean
     PasswordEncoder passwordEncoder() {
@@ -34,6 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/auth/register", "/api/auth/login").permitAll()
                         .requestMatchers("/api/parking/**", "/api/spots/**", "/api/rates/**").authenticated()
+                        .requestMatchers("/clock").authenticated()
                         .anyRequest().permitAll())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();

@@ -2,6 +2,7 @@ package com.parkease.service;
 
 import java.time.LocalDateTime;
 import java.time.Duration;
+import java.time.Clock;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -10,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.parkease.dto.CheckInRequest;
 import com.parkease.dto.CheckInResponse;
 import com.parkease.dto.CheckOutResponse;
+import com.parkease.dto.ClockResponse;
 import com.parkease.dto.ParkingSessionResponse;
 import com.parkease.entity.RateCard;
 import com.parkease.entity.ParkingSession;
@@ -30,15 +32,26 @@ public class ParkingService {
     private final ParkingSpotRepository parkingSpotRepository;
     private final FeeCalculatorService feeCalculatorService;
     private final RateCardService rateCardService;
+    private final Clock clock;
 
     public ParkingService(ParkingSessionRepository parkingSessionRepository,
                           ParkingSpotRepository parkingSpotRepository,
                           FeeCalculatorService feeCalculatorService,
                           RateCardService rateCardService) {
+                this(parkingSessionRepository, parkingSpotRepository, feeCalculatorService,
+                    rateCardService, Clock.systemDefaultZone());
+                }
+
+                public ParkingService(ParkingSessionRepository parkingSessionRepository,
+                          ParkingSpotRepository parkingSpotRepository,
+                          FeeCalculatorService feeCalculatorService,
+                          RateCardService rateCardService,
+                          Clock clock) {
         this.parkingSessionRepository = parkingSessionRepository;
         this.parkingSpotRepository = parkingSpotRepository;
         this.feeCalculatorService = feeCalculatorService;
         this.rateCardService = rateCardService;
+                this.clock = clock;
     }
 
     @Transactional
@@ -83,20 +96,12 @@ public class ParkingService {
                 throw new ConflictException("Parking session is already completed");
             }
 
-            LocalDateTime checkOutTime = LocalDateTime.now();
-            RateCard rateCard = rateCardService.getActiveRate(parkingSession.getParkingSpot().getType());
-            parkingSession.setCheckOutTime(checkOutTime);
-            parkingSession.setFee(feeCalculatorService.calculateFee(
-                parkingSession.getCheckInTime(), checkOutTime, rateCard));
-            parkingSession.setAppliedFirstHourRate(rateCard.getFirstHourRate());
-            parkingSession.setAppliedAdditionalHourRate(rateCard.getAdditionalHourRate());
-            parkingSession.setAppliedDailyCap(rateCard.getDailyCap());
-            parkingSession.setStatus(SessionStatus.COMPLETED);
-
             ParkingSpot parkingSpot = parkingSession.getParkingSpot();
-            parkingSpot.setOccupied(false);
-            parkingSessionRepository.save(parkingSession);
-            parkingSpotRepository.save(parkingSpot);
+            if (parkingSpot == null) {
+                throw new NotFoundException("Parking spot is missing for session " + sessionId);
+            }
+            LocalDateTime checkOutTime = LocalDateTime.now(clock);
+            completeSession(parkingSession, parkingSpot, checkOutTime);
 
             return new CheckOutResponse(
                 parkingSession.getId(),
@@ -108,6 +113,51 @@ public class ParkingService {
                 parkingSession.getFee(),
                 parkingSession.getStatus());
             }
+
+    @Transactional
+    public ClockResponse autoCloseOverdueSessions() {
+        LocalDateTime currentTime = LocalDateTime.now(clock);
+        LocalDateTime cutoff = currentTime.minusHours(24);
+        List<ClockResponse.AutoClosedSession> closedSessions = new java.util.ArrayList<>();
+        int spotsFreed = 0;
+        int skippedSessions = 0;
+
+        for (ParkingSession parkingSession : parkingSessionRepository.findByStatus(SessionStatus.ACTIVE)) {
+            if (parkingSession.getCheckInTime() == null
+                    || !parkingSession.getCheckInTime().isBefore(cutoff)) {
+                continue;
+            }
+
+            ParkingSpot parkingSpot = parkingSession.getParkingSpot();
+            if (parkingSpot == null) {
+                skippedSessions++;
+                continue;
+            }
+
+            completeSession(parkingSession, parkingSpot, currentTime);
+            closedSessions.add(new ClockResponse.AutoClosedSession(
+                    parkingSession.getId(), parkingSession.getPlateNumber(),
+                    currentTime, parkingSession.getFee()));
+            spotsFreed++;
+        }
+
+        return new ClockResponse(closedSessions.size(), spotsFreed, skippedSessions, closedSessions);
+    }
+
+    private void completeSession(ParkingSession parkingSession, ParkingSpot parkingSpot,
+                                 LocalDateTime checkOutTime) {
+        RateCard rateCard = rateCardService.getActiveRate(parkingSpot.getType());
+        parkingSession.setCheckOutTime(checkOutTime);
+        parkingSession.setFee(feeCalculatorService.calculateFee(
+                parkingSession.getCheckInTime(), checkOutTime, rateCard));
+        parkingSession.setAppliedFirstHourRate(rateCard.getFirstHourRate());
+        parkingSession.setAppliedAdditionalHourRate(rateCard.getAdditionalHourRate());
+        parkingSession.setAppliedDailyCap(rateCard.getDailyCap());
+        parkingSession.setStatus(SessionStatus.COMPLETED);
+        parkingSpot.setOccupied(false);
+        parkingSessionRepository.save(parkingSession);
+        parkingSpotRepository.save(parkingSpot);
+    }
 
     @Transactional(readOnly = true)
     public List<ParkingSessionResponse> searchByPlateNumber(String plateNumber) {
